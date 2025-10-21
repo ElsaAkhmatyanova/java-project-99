@@ -50,6 +50,10 @@ dependencies {
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")
+	testImplementation("org.instancio:instancio-junit:5.5.1")
+	testImplementation("net.javacrumbs.json-unit:json-unit-assertj:4.1.1")
+	testImplementation ("io.zonky.test:embedded-database-spring-test:2.6.0")
+	testImplementation("net.datafaker:datafaker:2.5.2")
 
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
