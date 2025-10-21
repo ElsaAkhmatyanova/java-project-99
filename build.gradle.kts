@@ -5,6 +5,7 @@ plugins {
 	id("org.springframework.boot") version "3.5.6"
 	id("io.spring.dependency-management") version "1.1.7"
 	id("org.sonarqube") version "6.2.0.5505"
+	id("io.freefair.lombok") version "9.0.0"
 }
 
 group = "hexlet.code"
@@ -39,13 +40,11 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.mapstruct:mapstruct:$mapstructVersion")
 	implementation("org.springframework.boot:spring-boot-starter-security")
-
-	compileOnly("org.projectlombok:lombok")
+	implementation("org.openapitools:jackson-databind-nullable:0.2.7")
 
 	runtimeOnly("com.h2database:h2")
 	runtimeOnly("org.postgresql:postgresql")
 
-	annotationProcessor("org.projectlombok:lombok")
 	annotationProcessor("org.mapstruct:mapstruct-processor:$mapstructVersion")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

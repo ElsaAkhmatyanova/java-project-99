@@ -8,13 +8,14 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UserRequestDto {
+public class UserCreateDto {
 
     @Email
     @NotBlank
     private String email;
 
     private String firstName;
+
     private String lastName;
 
     @NotBlank
