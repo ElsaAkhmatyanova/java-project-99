@@ -9,6 +9,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -23,6 +24,14 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorMessageResponse handleException(Exception e) {
         log.error("Handle Exception", e);
+        String errorMessage = e.getMessage() != null ? e.getMessage() : "Exception!";
+        return ErrorMessageResponse.builder().error(errorMessage).build();
+    }
+
+    @ExceptionHandler(value = BadCredentialsException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorMessageResponse handleException(BadCredentialsException e) {
+        log.debug("Handle BadCredentialsException", e);
         String errorMessage = e.getMessage() != null ? e.getMessage() : "Exception!";
         return ErrorMessageResponse.builder().error(errorMessage).build();
     }
