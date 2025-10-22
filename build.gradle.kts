@@ -41,6 +41,7 @@ dependencies {
 	implementation("org.mapstruct:mapstruct:$mapstructVersion")
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.openapitools:jackson-databind-nullable:0.2.7")
+	implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 
 	runtimeOnly("com.h2database:h2")
 	runtimeOnly("org.postgresql:postgresql")

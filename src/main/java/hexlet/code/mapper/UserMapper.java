@@ -7,7 +7,7 @@ import hexlet.code.model.User;
 import org.mapstruct.*;
 import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         uses = {JsonNullableMapper.class
@@ -17,7 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 public abstract class UserMapper {
 
     @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     public abstract UserResponseDto toResponseDto(User user);
 
