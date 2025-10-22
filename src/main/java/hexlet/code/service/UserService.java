@@ -39,7 +39,7 @@ public class UserService {
 
     @Transactional
     public UserResponseDto createUser(UserCreateDto dto) {
-        if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
+        if (userRepository.existsByEmail(dto.getEmail())) {
             throw new AlreadyExistException("Email " + dto.getEmail() + " already in use!");
         }
         User user = userMapper.toEntity(dto);

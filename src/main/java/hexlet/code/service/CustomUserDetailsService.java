@@ -45,7 +45,7 @@ public class CustomUserDetailsService implements UserDetailsManager {
 
     @Override
     public boolean userExists(String username) {
-        throw new UnsupportedOperationException("Unimplemented method 'userExists'");
+        return userRepository.existsByEmail(username);
     }
 
     @Override
