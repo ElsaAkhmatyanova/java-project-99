@@ -13,11 +13,18 @@ import org.junit.jupiter.api.Test;
 import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+
+import java.nio.charset.StandardCharsets;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -25,6 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @IntegrationTest
 class UserControllerTest {
 
+    @Autowired
+    private WebApplicationContext wac;
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -36,16 +45,20 @@ class UserControllerTest {
     private UserRepository userRepository;
 
     private User testUser;
+    private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor testUserToken;
 
     @BeforeEach
     void setUp() {
         testUser = Instancio.of(testModelGenerator.getUserModel()).create();
+        testUserToken = jwt().jwt(builder -> builder.subject(testUser.getEmail()));
+        mockMvc = MockMvcBuilders.webAppContextSetup(wac).defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
+                .apply(springSecurity()).build();
         userRepository.save(testUser);
     }
 
     @Test
     void getUserById() throws Exception {
-        var request = get("/api/users/" + testUser.getId());
+        var request = get("/api/users/" + testUser.getId()).with(testUserToken);
         var result = mockMvc.perform(request)
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -61,7 +74,7 @@ class UserControllerTest {
 
     @Test
     void getUsers() throws Exception {
-        var request = get("/api/users");
+        var request = get("/api/users").with(testUserToken);
         var result = mockMvc.perform(request)
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -85,6 +98,7 @@ class UserControllerTest {
         requestDto.setLastName("Lname");
         String stringRequestBody = objectMapper.writeValueAsString(requestDto);
         var request = post("/api/users")
+                .with(testUserToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(stringRequestBody);
         var result = mockMvc.perform(request)
@@ -114,6 +128,7 @@ class UserControllerTest {
 
         String stringRequestBody = objectMapper.writeValueAsString(requestDto);
         var request = put("/api/users/" + testUser.getId())
+                .with(testUserToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(stringRequestBody);
         var result = mockMvc.perform(request)
@@ -130,7 +145,7 @@ class UserControllerTest {
 
     @Test
     void deleteUser() throws Exception {
-        var request = delete("/api/users/" + testUser.getId());
+        var request = delete("/api/users/" + testUser.getId()).with(testUserToken);
         mockMvc.perform(request)
                 .andDo(print())
                 .andExpect(status().isOk())
