@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -125,5 +126,15 @@ class UserControllerTest {
                         v -> v.node("email").isEqualTo(newEmail),
                         v -> v.node("firstName").isEqualTo(newFirstName),
                         v -> v.node("lastName").isEqualTo(testUser.getLastName()));
+    }
+
+    @Test
+    void deleteUser() throws Exception {
+        var request = delete("/api/users/" + testUser.getId());
+        mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+        assertThat(userRepository.findAll()).isEmpty();
     }
 }
