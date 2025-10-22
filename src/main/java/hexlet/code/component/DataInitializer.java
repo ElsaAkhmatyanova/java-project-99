@@ -24,7 +24,7 @@ public class DataInitializer implements ApplicationRunner {
         if (!userService.userExists(email)) {
             var user = new User();
             user.setEmail(email);
-            user.setPassword(password);
+            user.setPasswordDigest(password);
             userService.createUser(user);
         }
     }

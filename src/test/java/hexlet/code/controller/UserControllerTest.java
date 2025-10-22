@@ -93,7 +93,7 @@ class UserControllerTest {
     void createUser() throws Exception {
         var requestDto = new UserCreateDto();
         requestDto.setEmail("testemail@test.com");
-        requestDto.setPassword("pass123");
+        requestDto.setPasswordDigest("pass123");
         requestDto.setFirstName("Fname");
         requestDto.setLastName("Lname");
         String stringRequestBody = objectMapper.writeValueAsString(requestDto);
@@ -114,7 +114,7 @@ class UserControllerTest {
                         v -> v.node("createdAt").isNotNull());
         User newUser = userRepository.findByEmail(requestDto.getEmail()).orElse(null);
         assertNotNull(newUser);
-        assertNotNull(newUser.getPassword());
+        assertNotNull(newUser.getPasswordDigest());
     }
 
     @Test

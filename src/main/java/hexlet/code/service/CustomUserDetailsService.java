@@ -21,7 +21,7 @@ public class CustomUserDetailsService implements UserDetailsManager {
         User user = new User();
         user.setEmail(userDetails.getUsername());
         String hashedPassword = passwordEncoder.encode(userDetails.getPassword());
-        user.setPassword(hashedPassword);
+        user.setPasswordDigest(hashedPassword);
         userRepository.save(user);
     }
 

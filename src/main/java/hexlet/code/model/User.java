@@ -47,7 +47,8 @@ public class User implements UserDetails {
 
     @NotBlank
     @Size(min = 3)
-    private String password;
+    @Column(name = "password")
+    private String passwordDigest;
 
     @CreatedDate
     @ToString.Include
@@ -66,6 +67,11 @@ public class User implements UserDetails {
     @Override
     public String getUsername() {
         return email;
+    }
+
+    @Override
+    public String getPassword() {
+        return passwordDigest;
     }
 
     @Override

@@ -25,8 +25,8 @@ public abstract class UserMapper {
 
     @BeforeMapping
     public void beforeMapping(UserCreateDto dto) {
-        String password = dto.getPassword();
-        dto.setPassword(passwordEncoder.encode(password));
+        String password = dto.getPasswordDigest();
+        dto.setPasswordDigest(passwordEncoder.encode(password));
     }
 
     public abstract void update(UserUpdateDto updateDto, @MappingTarget User user);

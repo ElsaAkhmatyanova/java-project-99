@@ -26,7 +26,7 @@ public class TestModelGenerator {
                 .supply(Select.field(User::getFirstName), () -> faker.name().firstName())
                 .supply(Select.field(User::getLastName), () -> faker.name().lastName())
                 .supply(Select.field(User::getEmail), () -> faker.internet().emailAddress())
-                .generate(Select.field(User::getPassword), gen -> gen.string().length(5))
+                .generate(Select.field(User::getPasswordDigest), gen -> gen.string().length(5))
                 .toModel();
     }
 }
