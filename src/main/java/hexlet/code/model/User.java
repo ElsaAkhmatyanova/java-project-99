@@ -37,6 +37,7 @@ public class User {
 
     @Email
     @NotBlank
+    @Column(unique = true)
     @ToString.Include
     private String email;
 
