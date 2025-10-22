@@ -3,6 +3,8 @@ package hexlet.code.service;
 import hexlet.code.dto.user.UserCreateDto;
 import hexlet.code.dto.user.UserResponseDto;
 import hexlet.code.dto.user.UserUpdateDto;
+import hexlet.code.exception.AlreadyExistException;
+import hexlet.code.exception.NotFoundException;
 import hexlet.code.mapper.UserMapper;
 import hexlet.code.model.User;
 import hexlet.code.repository.UserRepository;
@@ -24,7 +26,7 @@ public class UserService {
 
     public UserResponseDto getUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found!"));
+                .orElseThrow(() -> new NotFoundException("User with id " + id + " not found!"));
         return userMapper.toResponseDto(user);
     }
 
@@ -38,7 +40,7 @@ public class UserService {
     @Transactional
     public UserResponseDto createUser(UserCreateDto dto) {
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already in use!");
+            throw new AlreadyExistException("Email " + dto.getEmail() + " already in use!");
         }
         User user = userMapper.toEntity(dto);
         return userMapper.toResponseDto(userRepository.save(user));
@@ -47,7 +49,7 @@ public class UserService {
     @Transactional
     public UserResponseDto updateUser(Long id, UserUpdateDto dto) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found!"));
+                .orElseThrow(() -> new NotFoundException("User with id " + id + " not found!"));
         userMapper.update(dto, user);
         return userMapper.toResponseDto(userRepository.save(user));
     }
