@@ -10,6 +10,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -32,6 +33,14 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ErrorMessageResponse handleException(BadCredentialsException e) {
         log.debug("Handle BadCredentialsException", e);
+        String errorMessage = e.getMessage() != null ? e.getMessage() : "Exception!";
+        return ErrorMessageResponse.builder().error(errorMessage).build();
+    }
+
+    @ExceptionHandler(value = AuthorizationDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorMessageResponse handleException(AuthorizationDeniedException e) {
+        log.debug("Handle AuthorizationDeniedException", e);
         String errorMessage = e.getMessage() != null ? e.getMessage() : "Exception!";
         return ErrorMessageResponse.builder().error(errorMessage).build();
     }

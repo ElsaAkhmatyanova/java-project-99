@@ -3,37 +3,38 @@ package hexlet.code.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.IntegrationTest;
 import hexlet.code.TestModelGenerator;
+import hexlet.code.component.DataInitializer;
 import hexlet.code.dto.user.UserCreateDto;
 import hexlet.code.dto.user.UserUpdateDto;
+import hexlet.code.model.Role;
 import hexlet.code.model.User;
+import hexlet.code.repository.RoleRepository;
 import hexlet.code.repository.UserRepository;
+import hexlet.code.util.JWTUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
-import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Slf4j
 @IntegrationTest
 class UserControllerTest {
 
-    @Autowired
-    private WebApplicationContext wac;
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -45,20 +46,30 @@ class UserControllerTest {
     private UserRepository userRepository;
 
     private User testUser;
-    private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor testUserToken;
+    private String testUserToken;
+
+    @Autowired
+    private JWTUtils jwtUtils;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
+    private DataInitializer dataInitializer;
 
     @BeforeEach
     void setUp() {
+        dataInitializer.initializeRoles();
         testUser = Instancio.of(testModelGenerator.getUserModel()).create();
-        testUserToken = jwt().jwt(builder -> builder.subject(testUser.getEmail()));
-        mockMvc = MockMvcBuilders.webAppContextSetup(wac).defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
-                .apply(springSecurity()).build();
+        testUserToken = jwtUtils.generateToken(testUser.getEmail(),
+                List.of(new SimpleGrantedAuthority("ROLE_USER")));
         userRepository.save(testUser);
     }
 
     @Test
     void getUserById() throws Exception {
-        var request = get("/api/users/" + testUser.getId()).with(testUserToken);
+        var request = get("/api/users/" + testUser.getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);
         var result = mockMvc.perform(request)
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -74,7 +85,8 @@ class UserControllerTest {
 
     @Test
     void getUsers() throws Exception {
-        var request = get("/api/users").with(testUserToken);
+        var request = get("/api/users")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);
         var result = mockMvc.perform(request)
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -91,14 +103,17 @@ class UserControllerTest {
 
     @Test
     void createUser() throws Exception {
+        List<Role> roles = roleRepository.findAll();
+        log.info("Roles info: {}", roles);
+
         var requestDto = new UserCreateDto();
         requestDto.setEmail("testemail@test.com");
-        requestDto.setPasswordDigest("pass123");
+        requestDto.setPassword("pass123");
         requestDto.setFirstName("Fname");
         requestDto.setLastName("Lname");
         String stringRequestBody = objectMapper.writeValueAsString(requestDto);
         var request = post("/api/users")
-                .with(testUserToken)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(stringRequestBody);
         var result = mockMvc.perform(request)
@@ -119,6 +134,9 @@ class UserControllerTest {
 
     @Test
     void updateUser() throws Exception {
+        List<Role> roles = roleRepository.findAll();
+        log.info("Roles info: {}", roles);
+
         String newEmail = "newmail@test.com";
         String newFirstName = "newFname";
         var requestDto = new UserUpdateDto();
@@ -128,7 +146,7 @@ class UserControllerTest {
 
         String stringRequestBody = objectMapper.writeValueAsString(requestDto);
         var request = put("/api/users/" + testUser.getId())
-                .with(testUserToken)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(stringRequestBody);
         var result = mockMvc.perform(request)
@@ -145,7 +163,8 @@ class UserControllerTest {
 
     @Test
     void deleteUser() throws Exception {
-        var request = delete("/api/users/" + testUser.getId()).with(testUserToken);
+        var request = delete("/api/users/" + testUser.getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);
         mockMvc.perform(request)
                 .andDo(print())
                 .andExpect(status().isOk())

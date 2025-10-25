@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 @Component
 @RequiredArgsConstructor
 public class UserUtils {
@@ -19,5 +21,10 @@ public class UserUtils {
         }
         var email = authentication.getName();
         return userRepository.findByEmail(email).orElse(null);
+    }
+
+    public boolean isCurrentUserIdEquals(Long id) {
+        var currentUserId = getCurrentUser().getId();
+        return Objects.equals(currentUserId, id);
     }
 }
