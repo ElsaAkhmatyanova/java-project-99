@@ -8,6 +8,7 @@ import hexlet.code.util.UserUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,8 +29,11 @@ public class UserController {
     }
 
     @GetMapping
-    public List<UserResponseDto> getAllUsers() {
-        return userService.getAllUsers();
+    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
+        List<UserResponseDto> responseDtoList = userService.getAllUsers();
+        return ResponseEntity.ok()
+                .header("X-Total-Count", String.valueOf(responseDtoList.size()))
+                .body(responseDtoList);
     }
 
     @PostMapping
