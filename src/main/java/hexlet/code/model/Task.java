@@ -13,13 +13,13 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "task_statuses")
+@Table(name = "tasks")
 @Getter
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
 @EntityListeners(AuditingEntityListener.class)
-public class TaskStatus implements BaseEntity {
+public class Task implements BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,16 +28,21 @@ public class TaskStatus implements BaseEntity {
     private Long id;
 
     @NotBlank
-    @Column(unique = true)
     @Size(min = 1)
+    @Column
     @ToString.Include
     private String name;
 
-    @NotBlank
-    @Column(unique = true)
-    @Size(min = 1)
+    private Integer index;
+
     @ToString.Include
-    private String slug;
+    private String description;
+
+    @ManyToOne
+    private TaskStatus taskStatus;
+
+    @ManyToOne
+    private User assignee;
 
     @CreatedDate
     @ToString.Include

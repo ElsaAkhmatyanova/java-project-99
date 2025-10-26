@@ -26,7 +26,7 @@ import java.util.Set;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
 @EntityListeners(AuditingEntityListener.class)
-public class User implements UserDetails {
+public class User implements UserDetails, BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

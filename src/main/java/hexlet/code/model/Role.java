@@ -13,7 +13,7 @@ import org.springframework.security.core.GrantedAuthority;
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
-public class Role implements GrantedAuthority {
+public class Role implements GrantedAuthority, BaseEntity {
 
     public static final String ADMIN = "ROLE_ADMIN";
     public static final String USER = "ROLE_USER";
