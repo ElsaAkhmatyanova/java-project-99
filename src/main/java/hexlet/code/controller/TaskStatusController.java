@@ -8,7 +8,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,14 +39,12 @@ public class TaskStatusController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @userUtils.isCurrentUserIdEquals(#id)")
     public TaskStatusResponseDto updateUser(@PathVariable Long id,
                                             @Valid @RequestBody TaskStatusUpdateDto dto) {
         return taskStatusService.updateTaskStatus(id, dto);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @userUtils.isCurrentUserIdEquals(#id)")
     public void deleteUser(@PathVariable Long id) {
         taskStatusService.deleteTaskStatus(id);
     }

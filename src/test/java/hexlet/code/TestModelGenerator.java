@@ -1,5 +1,6 @@
 package hexlet.code;
 
+import hexlet.code.model.TaskStatus;
 import hexlet.code.model.User;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 public class TestModelGenerator {
 
     private Model<User> userModel;
+    private Model<TaskStatus> taskStatusModel;
 
     @Autowired
     private Faker faker;
@@ -24,10 +26,16 @@ public class TestModelGenerator {
         userModel = Instancio.of(User.class)
                 .ignore(Select.field(User::getId))
                 .ignore(Select.field(User::getRoles))
+                .ignore(Select.field(User::getCreatedAt))
                 .supply(Select.field(User::getFirstName), () -> faker.name().firstName())
                 .supply(Select.field(User::getLastName), () -> faker.name().lastName())
                 .supply(Select.field(User::getEmail), () -> faker.internet().emailAddress())
                 .generate(Select.field(User::getPasswordDigest), gen -> gen.string().length(5))
+                .toModel();
+
+        taskStatusModel = Instancio.of(TaskStatus.class)
+                .ignore(Select.field(TaskStatus::getId))
+                .ignore(Select.field(TaskStatus::getCreatedAt))
                 .toModel();
     }
 }

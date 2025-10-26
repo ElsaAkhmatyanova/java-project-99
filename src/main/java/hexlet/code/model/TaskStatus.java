@@ -13,7 +13,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "users")
+@Table(name = "task_statuses")
 @Getter
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)

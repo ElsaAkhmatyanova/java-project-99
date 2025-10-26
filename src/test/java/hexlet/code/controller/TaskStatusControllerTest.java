@@ -4,13 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.IntegrationTest;
 import hexlet.code.TestModelGenerator;
 import hexlet.code.component.DataInitializer;
-import hexlet.code.dto.user.UserCreateDto;
-import hexlet.code.dto.user.UserUpdateDto;
+import hexlet.code.dto.task_status.TaskStatusCreateDto;
+import hexlet.code.dto.task_status.TaskStatusUpdateDto;
+import hexlet.code.model.TaskStatus;
 import hexlet.code.model.User;
-import hexlet.code.repository.RoleRepository;
+import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.repository.UserRepository;
 import hexlet.code.util.JWTUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.api.Assertions;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Slf4j
 @IntegrationTest
-class UserControllerTest {
+public class TaskStatusControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -46,10 +48,9 @@ class UserControllerTest {
     private DataInitializer dataInitializer;
 
     @Autowired
-    private UserRepository userRepository;
+    private TaskStatusRepository taskStatusRepository;
     @Autowired
-    private RoleRepository roleRepository;
-
+    private UserRepository userRepository;
 
     private User testUser;
     private String testUserToken;
@@ -57,6 +58,7 @@ class UserControllerTest {
     @BeforeEach
     void setUp() {
         dataInitializer.initializeRoles();
+        dataInitializer.initializeTaskStatuses();
         testUser = Instancio.of(testModelGenerator.getUserModel()).create();
         testUserToken = jwtUtils.generateToken(testUser.getEmail(),
                 List.of(new SimpleGrantedAuthority("ROLE_USER")));
@@ -64,8 +66,10 @@ class UserControllerTest {
     }
 
     @Test
-    void getUserById() throws Exception {
-        var request = get("/api/users/" + testUser.getId())
+    void getTaskStatusById() throws Exception {
+        TaskStatus taskStatus = taskStatusRepository.findBySlug("draft").orElseGet(Assertions::fail);
+
+        var request = get("/api/task_statuses/" + taskStatus.getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);
         var result = mockMvc.perform(request)
                 .andDo(print())
@@ -73,16 +77,15 @@ class UserControllerTest {
                 .andReturn();
         var body = result.getResponse().getContentAsString();
         assertThatJson(body)
-                .and(v -> v.node("id").isEqualTo(testUser.getId()),
-                        v -> v.node("email").isEqualTo(testUser.getEmail()),
-                        v -> v.node("firstName").isEqualTo(testUser.getFirstName()),
-                        v -> v.node("lastName").isEqualTo(testUser.getLastName()),
+                .and(v -> v.node("id").isEqualTo(taskStatus.getId()),
+                        v -> v.node("name").isEqualTo(taskStatus.getName()),
+                        v -> v.node("slug").isEqualTo(taskStatus.getSlug()),
                         v -> v.node("createdAt").isNotNull());
     }
 
     @Test
-    void getUsers() throws Exception {
-        var request = get("/api/users")
+    void getTaskStatuses() throws Exception {
+        var request = get("/api/task_statuses")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);
         var result = mockMvc.perform(request)
                 .andDo(print())
@@ -90,23 +93,17 @@ class UserControllerTest {
                 .andReturn();
         var body = result.getResponse().getContentAsString();
         assertThatJson(body)
-                .inPath("[0]")  // check first element
-                .and(v -> v.node("id").isEqualTo(testUser.getId()),
-                        v -> v.node("email").isEqualTo(testUser.getEmail()),
-                        v -> v.node("firstName").isEqualTo(testUser.getFirstName()),
-                        v -> v.node("lastName").isEqualTo(testUser.getLastName()),
-                        v -> v.node("createdAt").isNotNull());
+                .isArray()
+                .isNotEmpty();
     }
 
     @Test
-    void createUser() throws Exception {
-        var requestDto = new UserCreateDto();
-        requestDto.setEmail("testemail@test.com");
-        requestDto.setPassword("pass123");
-        requestDto.setFirstName("Fname");
-        requestDto.setLastName("Lname");
+    void createTaskStatus() throws Exception {
+        var requestDto = new TaskStatusCreateDto();
+        requestDto.setName("taskStatusName");
+        requestDto.setSlug("taskStatusSlug");
         String stringRequestBody = objectMapper.writeValueAsString(requestDto);
-        var request = post("/api/users")
+        var request = post("/api/task_statuses")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(stringRequestBody);
@@ -117,26 +114,25 @@ class UserControllerTest {
         var body = result.getResponse().getContentAsString();
         assertThatJson(body)
                 .and(v -> v.node("id").isNotNull(),
-                        v -> v.node("email").isEqualTo(requestDto.getEmail()),
-                        v -> v.node("firstName").isEqualTo(requestDto.getFirstName()),
-                        v -> v.node("lastName").isEqualTo(requestDto.getLastName()),
+                        v -> v.node("name").isEqualTo(requestDto.getName()),
+                        v -> v.node("slug").isEqualTo(requestDto.getSlug()),
                         v -> v.node("createdAt").isNotNull());
-        User newUser = userRepository.findByEmail(requestDto.getEmail()).orElse(null);
-        assertNotNull(newUser);
-        assertNotNull(newUser.getPasswordDigest());
+        TaskStatus newTaskStatus = taskStatusRepository.findBySlug(requestDto.getSlug()).orElse(null);
+        assertNotNull(newTaskStatus);
     }
 
     @Test
-    void updateUser() throws Exception {
-        String newEmail = "newmail@test.com";
-        String newFirstName = "newFname";
-        var requestDto = new UserUpdateDto();
-        requestDto.setEmail(JsonNullable.of(newEmail));
-        requestDto.setFirstName(JsonNullable.of(newFirstName));
-        requestDto.setPassword(JsonNullable.of("newpass123"));
+    void updateTaskStatus() throws Exception {
+        String taskStatusSlug = "draft";
+        TaskStatus taskStatus = taskStatusRepository.findBySlug(taskStatusSlug).orElseGet(Assertions::fail);
+        String newName = "newName";
+        String newSlug = "newSlug";
+        var requestDto = new TaskStatusUpdateDto();
+        requestDto.setName(JsonNullable.of(newName));
+        requestDto.setSlug(JsonNullable.of(newSlug));
 
         String stringRequestBody = objectMapper.writeValueAsString(requestDto);
-        var request = put("/api/users/" + testUser.getId())
+        var request = put("/api/task_statuses/" + taskStatus.getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(stringRequestBody);
@@ -147,19 +143,21 @@ class UserControllerTest {
         var body = result.getResponse().getContentAsString();
         assertThatJson(body)
                 .and(v -> v.node("id").isNotNull(),
-                        v -> v.node("email").isEqualTo(newEmail),
-                        v -> v.node("firstName").isEqualTo(newFirstName),
-                        v -> v.node("lastName").isEqualTo(testUser.getLastName()));
+                        v -> v.node("name").isEqualTo(newName),
+                        v -> v.node("slug").isEqualTo(newSlug));
     }
 
     @Test
-    void deleteUser() throws Exception {
-        var request = delete("/api/users/" + testUser.getId())
+    void deleteTaskStatus() throws Exception {
+        String taskStatusSlug = "draft";
+        TaskStatus taskStatus = taskStatusRepository.findBySlug(taskStatusSlug).orElseGet(Assertions::fail);
+
+        var request = delete("/api/task_statuses/" + taskStatus.getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);
         mockMvc.perform(request)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
-        assertThat(userRepository.findAll()).isEmpty();
+        assertThat(taskStatusRepository.findBySlug(taskStatusSlug)).isEmpty();
     }
 }
