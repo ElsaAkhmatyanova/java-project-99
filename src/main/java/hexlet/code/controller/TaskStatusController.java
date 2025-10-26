@@ -1,0 +1,54 @@
+package hexlet.code.controller;
+
+import hexlet.code.dto.task_status.TaskStatusCreateDto;
+import hexlet.code.dto.task_status.TaskStatusResponseDto;
+import hexlet.code.dto.task_status.TaskStatusUpdateDto;
+import hexlet.code.service.TaskStatusService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@Slf4j
+@RestController
+@RequestMapping("/api/task_statuses")
+@RequiredArgsConstructor
+public class TaskStatusController {
+
+    private final TaskStatusService taskStatusService;
+
+    @GetMapping("/{id}")
+    public TaskStatusResponseDto getTaskStatus(@PathVariable Long id) {
+        return taskStatusService.getTaskStatusById(id);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<TaskStatusResponseDto>> getAllTaskStatuses() {
+        List<TaskStatusResponseDto> responseDtoList = taskStatusService.getAllTaskStatuses();
+        return ResponseEntity.ok()
+                .header("X-Total-Count", String.valueOf(responseDtoList.size()))
+                .body(responseDtoList);
+    }
+
+    @PostMapping
+    public TaskStatusResponseDto createTaskStatus(@Valid @RequestBody TaskStatusCreateDto dto) {
+        return taskStatusService.createTaskStatus(dto);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @userUtils.isCurrentUserIdEquals(#id)")
+    public TaskStatusResponseDto updateUser(@PathVariable Long id,
+                                            @Valid @RequestBody TaskStatusUpdateDto dto) {
+        return taskStatusService.updateTaskStatus(id, dto);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @userUtils.isCurrentUserIdEquals(#id)")
+    public void deleteUser(@PathVariable Long id) {
+        taskStatusService.deleteTaskStatus(id);
+    }
+}
