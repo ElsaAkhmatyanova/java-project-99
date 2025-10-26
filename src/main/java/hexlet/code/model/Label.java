@@ -11,17 +11,15 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
-@Table(name = "tasks")
+@Table(name = "lables")
 @Getter
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
 @EntityListeners(AuditingEntityListener.class)
-public class Task implements BaseEntity {
+public class Label {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,32 +28,13 @@ public class Task implements BaseEntity {
     private Long id;
 
     @NotBlank
-    @Size(min = 1)
-    @Column
+    @Size(min = 3, max = 1000)
+    @Column(unique = true)
     @ToString.Include
     private String name;
-
-    private Integer index;
-
-    @ToString.Include
-    private String description;
-
-    @ManyToOne
-    private TaskStatus taskStatus;
-
-    @ManyToOne
-    private User assignee;
 
     @CreatedDate
     @ToString.Include
     @Column(updatable = false)
     private LocalDate createdAt;
-
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "task_labels",
-            joinColumns = @JoinColumn(name = "task_id"),
-            inverseJoinColumns = @JoinColumn(name = "label_id")
-    )
-    private Set<Label> labels = new HashSet<>();
 }

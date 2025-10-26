@@ -1,9 +1,11 @@
 package hexlet.code.component;
 
 import hexlet.code.exception.NotFoundException;
+import hexlet.code.model.Label;
 import hexlet.code.model.Role;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.model.User;
+import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.RoleRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.service.CustomUserDetailsService;
@@ -23,12 +25,20 @@ public class DataInitializer implements ApplicationRunner {
     private final CustomUserDetailsService customUserDetailsService;
     private final RoleRepository roleRepository;
     private final TaskStatusRepository taskStatusRepository;
+    private final LabelRepository labelRepository;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
         initializeRoles();
         initializeUser();
         initializeTaskStatuses();
+        initializeLabels();
+    }
+
+    @Transactional
+    public void initializeLabels() {
+        Set<String> defaultLabels = Set.of("feature", "bug");
+        defaultLabels.forEach(this::createLabelIfNotExist);
     }
 
     @Transactional
@@ -77,6 +87,14 @@ public class DataInitializer implements ApplicationRunner {
             taskStatus.setName(name);
             taskStatus.setSlug(slug);
             taskStatusRepository.save(taskStatus);
+        }
+    }
+
+    private void createLabelIfNotExist(String name) {
+        if (!labelRepository.existsByName(name)) {
+            var label = new Label();
+            label.setName(name);
+            labelRepository.save(label);
         }
     }
 }

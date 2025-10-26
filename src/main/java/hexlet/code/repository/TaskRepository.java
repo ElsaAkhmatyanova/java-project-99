@@ -11,4 +11,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     @Query("select (count(t) > 0) from Task t where t.taskStatus.id = ?1")
     boolean existsByTaskStatusId(Long id);
+
+    @Query("select (count(t) > 0) from Task t inner join t.labels labels where labels.id = ?1")
+    boolean existsByLabelsId(Long id);
 }
