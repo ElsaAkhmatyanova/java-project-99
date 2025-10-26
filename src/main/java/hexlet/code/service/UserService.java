@@ -5,8 +5,10 @@ import hexlet.code.dto.user.UserResponseDto;
 import hexlet.code.dto.user.UserUpdateDto;
 import hexlet.code.exception.AlreadyExistException;
 import hexlet.code.exception.NotFoundException;
+import hexlet.code.exception.RestrictionException;
 import hexlet.code.mapper.UserMapper;
 import hexlet.code.model.User;
+import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final TaskRepository taskRepository;
     private final UserMapper userMapper;
 
     public UserResponseDto getUserById(Long id) {
@@ -56,6 +59,9 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long id) {
+        if (taskRepository.existsByAssigneeId(id)) {
+            throw new RestrictionException("It's impossible to delete a user because he's assigned to a task");
+        }
         userRepository.deleteById(id);
     }
 }
