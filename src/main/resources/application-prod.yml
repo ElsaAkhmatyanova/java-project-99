@@ -12,3 +12,7 @@ spring:
 logging:
   level:
     com.hexlet: info
+
+sentry:
+  dsn: https://9da511697ed274233841586f4bbe4639@o4510262112288768.ingest.de.sentry.io/4510262113927248
+  send-default-pii: true

@@ -6,6 +6,7 @@ plugins {
 	id("io.spring.dependency-management") version "1.1.7"
 	id("org.sonarqube") version "6.2.0.5505"
 	id("io.freefair.lombok") version "9.0.0"
+	id("io.sentry.jvm.gradle") version "5.12.1"
 }
 
 group = "hexlet.code"
@@ -65,6 +66,21 @@ checkstyle {
 	isIgnoreFailures = false
 }
 
+sonar {
+	properties {
+		property("sonar.projectKey", "ElsaAkhmatyanova_java-project-99")
+		property("sonar.organization", "elsaakhmatyanova")
+		property("sonar.host.url", "https://sonarcloud.io")
+	}
+}
+
+sentry {
+	includeSourceContext = true
+	org = "elsaakhmatyanova"
+	projectName = "java-spring-boot"
+	authToken = System.getenv("SENTRY_AUTH_TOKEN")
+}
+
 tasks.withType<Test> {
 	useJUnitPlatform()
 	finalizedBy(tasks.jacocoTestReport)
@@ -77,10 +93,6 @@ tasks.jacocoTestReport {
 	}
 }
 
-sonar {
-	properties {
-		property("sonar.projectKey", "ElsaAkhmatyanova_java-project-99")
-		property("sonar.organization", "elsaakhmatyanova")
-		property("sonar.host.url", "https://sonarcloud.io")
-	}
+tasks.sentryBundleSourcesJava {
+	enabled = System.getenv("SENTRY_AUTH_TOKEN") != null
 }
