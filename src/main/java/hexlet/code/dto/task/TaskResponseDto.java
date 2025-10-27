@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -19,4 +20,5 @@ public class TaskResponseDto {
     private String title;
     private String content;
     private String status;
+    private Set<Long> labels;
 }

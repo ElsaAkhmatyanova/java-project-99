@@ -6,9 +6,11 @@ import hexlet.code.TestModelGenerator;
 import hexlet.code.component.DataInitializer;
 import hexlet.code.dto.task.TaskCreateDto;
 import hexlet.code.dto.task.TaskUpdateDto;
+import hexlet.code.model.Label;
 import hexlet.code.model.Task;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.model.User;
+import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.repository.UserRepository;
@@ -26,6 +28,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Set;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,16 +57,21 @@ class TaskControllerTest {
     private TaskStatusRepository taskStatusRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private LabelRepository labelRepository;
 
     private User testUser;
     private Task testTask;
     private String testUserToken;
+    private Label featureLabel;
 
     @BeforeEach
     void setUp() {
         dataInitializer.initializeRoles();
         dataInitializer.initializeTaskStatuses();
         dataInitializer.initializeLabels();
+
+        featureLabel = labelRepository.findByName("feature").orElseGet(Assertions::fail);
 
         testUser = Instancio.of(testModelGenerator.getUserModel()).create();
         testUserToken = jwtUtils.generateToken(testUser.getEmail(),
@@ -72,6 +80,7 @@ class TaskControllerTest {
         testTask = Instancio.of(testModelGenerator.getTaskModel()).create();
         testTask.setAssignee(testUser);
         testTask.setTaskStatus(taskStatusRepository.findBySlug("draft").orElse(null));
+        testTask.setLabels(Set.of(featureLabel));
         taskRepository.save(testTask);
     }
 
@@ -92,6 +101,7 @@ class TaskControllerTest {
                         v -> v.node("content").isEqualTo(testTask.getDescription()),
                         v -> v.node("assignee_id").isEqualTo(testUser.getId()),
                         v -> v.node("status").isEqualTo(taskStatus.getSlug()),
+                        v -> v.node("labels").isArray().containsExactlyInAnyOrder(featureLabel.getId()),
                         v -> v.node("createdAt").isNotNull());
     }
 
@@ -118,6 +128,7 @@ class TaskControllerTest {
         requestDto.setContent("taskContent");
         requestDto.setAssigneeId(testUser.getId());
         requestDto.setStatus(taskStatus.getSlug());
+        requestDto.setLabels(Set.of(featureLabel.getId()));
         String stringRequestBody = objectMapper.writeValueAsString(requestDto);
 
         var request = post("/api/tasks")
@@ -135,13 +146,16 @@ class TaskControllerTest {
                         v -> v.node("content").isEqualTo(requestDto.getContent()),
                         v -> v.node("assignee_id").isEqualTo(testUser.getId()),
                         v -> v.node("status").isEqualTo(taskStatus.getSlug()),
+                        v -> v.node("labels").isArray().containsExactlyInAnyOrder(featureLabel.getId()),
                         v -> v.node("createdAt").isNotNull());
     }
 
     @Test
     void updateTaskStatus() throws Exception {
         String taskStatusSlug = "to_review";
+        String bugLabel = "bug";
         TaskStatus newTaskStatus = taskStatusRepository.findBySlug(taskStatusSlug).orElseGet(Assertions::fail);
+        Label newLabel = labelRepository.findByName(bugLabel).orElseGet(Assertions::fail);
         String newTitle = "newName";
         String newContent = "newSlug";
         Integer newIndex = 1934;
@@ -150,6 +164,7 @@ class TaskControllerTest {
         requestDto.setContent(JsonNullable.of(newContent));
         requestDto.setIndex(JsonNullable.of(newIndex));
         requestDto.setStatus(JsonNullable.of(newTaskStatus.getSlug()));
+        requestDto.setLabels(JsonNullable.of(Set.of(newLabel.getId())));
         String stringRequestBody = objectMapper.writeValueAsString(requestDto);
 
         var request = put("/api/tasks/" + testTask.getId())
@@ -166,7 +181,8 @@ class TaskControllerTest {
                         v -> v.node("title").isEqualTo(requestDto.getTitle()),
                         v -> v.node("content").isEqualTo(requestDto.getContent()),
                         v -> v.node("assignee_id").isEqualTo(testUser.getId()),
-                        v -> v.node("status").isEqualTo(newTaskStatus.getSlug()));
+                        v -> v.node("status").isEqualTo(newTaskStatus.getSlug()),
+                        v -> v.node("labels").isArray().containsExactlyInAnyOrder(newLabel.getId()));
     }
 
     @Test
