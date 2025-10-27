@@ -8,6 +8,7 @@ import hexlet.code.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +28,7 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TaskResponseDto>> getAllTasks(TaskFiltrationDto filtration) {
+    public ResponseEntity<List<TaskResponseDto>> getAllTasks(@ParameterObject TaskFiltrationDto filtration) {
         List<TaskResponseDto> responseDtoList = taskService.getAllTasks(filtration);
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(responseDtoList.size()))
