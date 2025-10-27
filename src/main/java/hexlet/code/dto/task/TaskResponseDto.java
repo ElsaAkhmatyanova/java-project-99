@@ -20,5 +20,5 @@ public class TaskResponseDto {
     private String title;
     private String content;
     private String status;
-    private Set<Long> labels;
+    private Set<Long> taskLabelIds;
 }

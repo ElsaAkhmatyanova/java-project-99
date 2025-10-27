@@ -24,5 +24,5 @@ public class TaskCreateDto {
     @NotBlank
     private String status;
 
-    private Set<Long> labels;
+    private Set<Long> taskLabelIds;
 }

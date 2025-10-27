@@ -32,7 +32,9 @@ public abstract class LabelMapper {
 
     @Named("getLabelIds")
     public Set<Long> getLabelIds(Set<Label> labels) {
-        if (labels == null) return Collections.emptySet();
+        if (labels == null) {
+            return Collections.emptySet();
+        }
         return labels.stream()
                 .map(Label::getId)
                 .collect(Collectors.toSet());
@@ -40,7 +42,9 @@ public abstract class LabelMapper {
 
     @Named("getLabelsByIds")
     public Set<Label> getLabelsByIds(Set<Long> ids) {
-        if (ids == null) return Collections.emptySet();
+        if (ids == null) {
+            return Collections.emptySet();
+        }
         List<Label> labels = labelRepository.findAllById(ids);
         return new HashSet<>(labels);
     }

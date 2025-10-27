@@ -101,7 +101,7 @@ class TaskControllerTest {
                         v -> v.node("content").isEqualTo(testTask.getDescription()),
                         v -> v.node("assignee_id").isEqualTo(testUser.getId()),
                         v -> v.node("status").isEqualTo(taskStatus.getSlug()),
-                        v -> v.node("labels").isArray().containsExactlyInAnyOrder(featureLabel.getId()),
+                        v -> v.node("taskLabelIds").isArray().containsExactlyInAnyOrder(featureLabel.getId()),
                         v -> v.node("createdAt").isNotNull());
     }
 
@@ -128,7 +128,7 @@ class TaskControllerTest {
         requestDto.setContent("taskContent");
         requestDto.setAssigneeId(testUser.getId());
         requestDto.setStatus(taskStatus.getSlug());
-        requestDto.setLabels(Set.of(featureLabel.getId()));
+        requestDto.setTaskLabelIds(Set.of(featureLabel.getId()));
         String stringRequestBody = objectMapper.writeValueAsString(requestDto);
 
         var request = post("/api/tasks")
@@ -146,7 +146,7 @@ class TaskControllerTest {
                         v -> v.node("content").isEqualTo(requestDto.getContent()),
                         v -> v.node("assignee_id").isEqualTo(testUser.getId()),
                         v -> v.node("status").isEqualTo(taskStatus.getSlug()),
-                        v -> v.node("labels").isArray().containsExactlyInAnyOrder(featureLabel.getId()),
+                        v -> v.node("taskLabelIds").isArray().containsExactlyInAnyOrder(featureLabel.getId()),
                         v -> v.node("createdAt").isNotNull());
     }
 
@@ -164,7 +164,7 @@ class TaskControllerTest {
         requestDto.setContent(JsonNullable.of(newContent));
         requestDto.setIndex(JsonNullable.of(newIndex));
         requestDto.setStatus(JsonNullable.of(newTaskStatus.getSlug()));
-        requestDto.setLabels(JsonNullable.of(Set.of(newLabel.getId())));
+        requestDto.setTaskLabelIds(JsonNullable.of(Set.of(newLabel.getId())));
         String stringRequestBody = objectMapper.writeValueAsString(requestDto);
 
         var request = put("/api/tasks/" + testTask.getId())
@@ -182,7 +182,7 @@ class TaskControllerTest {
                         v -> v.node("content").isEqualTo(requestDto.getContent()),
                         v -> v.node("assignee_id").isEqualTo(testUser.getId()),
                         v -> v.node("status").isEqualTo(newTaskStatus.getSlug()),
-                        v -> v.node("labels").isArray().containsExactlyInAnyOrder(newLabel.getId()));
+                        v -> v.node("taskLabelIds").isArray().containsExactlyInAnyOrder(newLabel.getId()));
     }
 
     @Test

@@ -20,20 +20,20 @@ public abstract class TaskMapper {
     @Mapping(target = "title", source = "name")
     @Mapping(target = "content", source = "description")
     @Mapping(target = "status", source = "taskStatus.slug")
-    @Mapping(target = "labels", source = "labels", qualifiedByName = "getLabelIds")
+    @Mapping(target = "taskLabelIds", source = "labels", qualifiedByName = "getLabelIds")
     public abstract TaskResponseDto toResponseDto(Task taskStatus);
 
     @Mapping(target = "assignee", source = "assigneeId")
     @Mapping(target = "name", source = "title")
     @Mapping(target = "description", source = "content")
     @Mapping(target = "taskStatus", source = "status", qualifiedByName = "getTaskStatusBySlag")
-    @Mapping(target = "labels", source = "labels", qualifiedByName = "getLabelsByIds")
+    @Mapping(target = "labels", source = "taskLabelIds", qualifiedByName = "getLabelsByIds")
     public abstract Task toEntity(TaskCreateDto dto);
 
     @Mapping(target = "assignee", source = "assigneeId")
     @Mapping(target = "name", source = "title")
     @Mapping(target = "description", source = "content")
     @Mapping(target = "taskStatus", source = "status", qualifiedByName = "getTaskStatusBySlag")
-    @Mapping(target = "labels", source = "labels", qualifiedByName = "getLabelsByIds")
+    @Mapping(target = "labels", source = "taskLabelIds", qualifiedByName = "getLabelsByIds")
     public abstract void update(TaskUpdateDto updateDto, @MappingTarget Task taskStatus);
 }
