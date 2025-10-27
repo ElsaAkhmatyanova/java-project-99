@@ -25,9 +25,11 @@ import java.util.List;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
@@ -124,6 +126,24 @@ class UserControllerTest {
         User newUser = userRepository.findByEmail(requestDto.getEmail()).orElse(null);
         assertNotNull(newUser);
         assertNotNull(newUser.getPasswordDigest());
+    }
+
+    @Test
+    void createUserValidationError() throws Exception {
+        var requestDto = new UserCreateDto();
+        requestDto.setEmail("testemail@test.com");
+        requestDto.setFirstName("Fname");
+        requestDto.setLastName("Lname");
+        String stringRequestBody = objectMapper.writeValueAsString(requestDto);
+        var request = post("/api/users")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(stringRequestBody);
+        mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString(
+                        "Ошибка валидации в полях")));
     }
 
     @Test
