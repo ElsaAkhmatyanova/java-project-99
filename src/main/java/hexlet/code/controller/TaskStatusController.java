@@ -39,13 +39,13 @@ public class TaskStatusController {
     }
 
     @PutMapping("/{id}")
-    public TaskStatusResponseDto updateUser(@PathVariable Long id,
+    public TaskStatusResponseDto updateTaskStatus(@PathVariable Long id,
                                             @Valid @RequestBody TaskStatusUpdateDto dto) {
         return taskStatusService.updateTaskStatus(id, dto);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable Long id) {
+    public void deleteTaskStatus(@PathVariable Long id) {
         taskStatusService.deleteTaskStatus(id);
     }
 }

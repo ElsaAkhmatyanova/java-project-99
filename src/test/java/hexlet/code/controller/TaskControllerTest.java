@@ -63,6 +63,8 @@ class TaskControllerTest {
     void setUp() {
         dataInitializer.initializeRoles();
         dataInitializer.initializeTaskStatuses();
+        dataInitializer.initializeLabels();
+
         testUser = Instancio.of(testModelGenerator.getUserModel()).create();
         testUserToken = jwtUtils.generateToken(testUser.getEmail(),
                 List.of(new SimpleGrantedAuthority("ROLE_USER")));

@@ -45,6 +45,7 @@ public class TestModelGenerator {
                 .ignore(Select.field(Task::getTaskStatus))
                 .ignore(Select.field(Task::getAssignee))
                 .ignore(Select.field(Task::getCreatedAt))
+                .ignore(Select.field(Task::getLabels))
                 .toModel();
     }
 }

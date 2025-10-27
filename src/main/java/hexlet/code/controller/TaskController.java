@@ -26,7 +26,7 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TaskResponseDto>> getAllTaskes() {
+    public ResponseEntity<List<TaskResponseDto>> getAllTasks() {
         List<TaskResponseDto> responseDtoList = taskService.getAllTasks();
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(responseDtoList.size()))
@@ -39,13 +39,13 @@ public class TaskController {
     }
 
     @PutMapping("/{id}")
-    public TaskResponseDto updateUser(@PathVariable Long id,
+    public TaskResponseDto updateTask(@PathVariable Long id,
                                       @Valid @RequestBody TaskUpdateDto dto) {
         return taskService.updateTask(id, dto);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable Long id) {
+    public void deleteTask(@PathVariable Long id) {
         taskService.deleteTask(id);
     }
 }
