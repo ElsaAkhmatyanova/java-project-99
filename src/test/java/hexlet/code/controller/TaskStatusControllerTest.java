@@ -6,8 +6,10 @@ import hexlet.code.TestModelGenerator;
 import hexlet.code.component.DataInitializer;
 import hexlet.code.dto.task_status.TaskStatusCreateDto;
 import hexlet.code.dto.task_status.TaskStatusUpdateDto;
+import hexlet.code.model.Task;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.model.User;
+import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.repository.UserRepository;
 import hexlet.code.util.JWTUtils;
@@ -24,6 +26,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Set;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,6 +54,8 @@ public class TaskStatusControllerTest {
     private TaskStatusRepository taskStatusRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private TaskRepository taskRepository;
 
     private User testUser;
     private String testUserToken;
@@ -122,6 +127,23 @@ public class TaskStatusControllerTest {
     }
 
     @Test
+    void createTaskStatusExistedError() throws Exception {
+        TaskStatus taskStatus = taskStatusRepository.findBySlug("draft").orElseGet(Assertions::fail);
+        var requestDto = new TaskStatusCreateDto();
+        requestDto.setName(taskStatus.getName());
+        requestDto.setSlug(taskStatus.getSlug());
+        String stringRequestBody = objectMapper.writeValueAsString(requestDto);
+
+        var request = post("/api/task_statuses")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(stringRequestBody);
+        mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isConflict());
+    }
+
+    @Test
     void updateTaskStatus() throws Exception {
         String taskStatusSlug = "draft";
         TaskStatus taskStatus = taskStatusRepository.findBySlug(taskStatusSlug).orElseGet(Assertions::fail);
@@ -159,5 +181,22 @@ public class TaskStatusControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
         assertThat(taskStatusRepository.findBySlug(taskStatusSlug)).isEmpty();
+    }
+
+    @Test
+    void deleteTaskStatusWithAssignedTaskConflict() throws Exception {
+        String taskStatusSlug = "draft";
+        TaskStatus taskStatus = taskStatusRepository.findBySlug(taskStatusSlug).orElseGet(Assertions::fail);
+
+        Task testTask = Instancio.of(testModelGenerator.getTaskModel()).create();
+        testTask.setAssignee(testUser);
+        testTask.setTaskStatus(taskStatus);
+        taskRepository.save(testTask);
+
+        var request = delete("/api/task_statuses/" + taskStatus.getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);
+        mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isConflict());
     }
 }

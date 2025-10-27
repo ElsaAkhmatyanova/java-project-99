@@ -7,8 +7,12 @@ import hexlet.code.component.DataInitializer;
 import hexlet.code.dto.label.LabelCreateDto;
 import hexlet.code.dto.label.LabelUpdateDto;
 import hexlet.code.model.Label;
+import hexlet.code.model.Task;
+import hexlet.code.model.TaskStatus;
 import hexlet.code.model.User;
 import hexlet.code.repository.LabelRepository;
+import hexlet.code.repository.TaskRepository;
+import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.repository.UserRepository;
 import hexlet.code.util.JWTUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +28,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Set;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,6 +40,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Slf4j
 @IntegrationTest
 class LabelControllerTest {
+
+    @Autowired
+    private TaskRepository taskRepository;
+
+    @Autowired
+    private TaskStatusRepository taskStatusRepository;
 
     @Autowired
     private MockMvc mockMvc;
@@ -122,6 +133,21 @@ class LabelControllerTest {
     }
 
     @Test
+    void createLabelWithExistedNameConflict() throws Exception {
+        var requestDto = new LabelCreateDto();
+        requestDto.setName("bug");
+        String stringRequestBody = objectMapper.writeValueAsString(requestDto);
+
+        var request = post("/api/labels")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(stringRequestBody);
+        mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isConflict());
+    }
+
+    @Test
     void updateLabel() throws Exception {
         String labelName = "bug";
         Label label = labelRepository.findByName(labelName).orElseGet(Assertions::fail);
@@ -157,5 +183,25 @@ class LabelControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
         assertThat(labelRepository.findByName(labelName)).isEmpty();
+    }
+
+    @Test
+    void deleteLabelWithAssignedTaskConflict() throws Exception {
+        String labelName = "bug";
+        Label label = labelRepository.findByName(labelName).orElseGet(Assertions::fail);
+
+        TaskStatus taskStatus = taskStatusRepository.findBySlug("draft").orElseGet(Assertions::fail);
+
+        Task testTask = Instancio.of(testModelGenerator.getTaskModel()).create();
+        testTask.setAssignee(testUser);
+        testTask.setTaskStatus(taskStatus);
+        testTask.setLabels(Set.of(label));
+        taskRepository.save(testTask);
+
+        var request = delete("/api/labels/" + label.getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);
+        mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isConflict());
     }
 }
