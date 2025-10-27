@@ -1,15 +1,18 @@
 package hexlet.code.service;
 
 import hexlet.code.dto.task.TaskCreateDto;
+import hexlet.code.dto.task.TaskFiltrationDto;
 import hexlet.code.dto.task.TaskResponseDto;
 import hexlet.code.dto.task.TaskUpdateDto;
 import hexlet.code.exception.NotFoundException;
 import hexlet.code.mapper.TaskMapper;
 import hexlet.code.model.Task;
 import hexlet.code.repository.TaskRepository;
+import hexlet.code.repository.specification.TaskSpecification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,6 +25,7 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
     private final TaskMapper taskMapper;
+    private final TaskSpecification taskSpecification;
 
     public TaskResponseDto getTaskById(Long id) {
         Task task = taskRepository.findById(id)
@@ -29,8 +33,9 @@ public class TaskService {
         return taskMapper.toResponseDto(task);
     }
 
-    public List<TaskResponseDto> getAllTasks() {
-        return taskRepository.findAll().stream()
+    public List<TaskResponseDto> getAllTasks(TaskFiltrationDto filtration) {
+        Specification<Task> spec = taskSpecification.build(filtration);
+        return taskRepository.findAll(spec).stream()
                 .map(taskMapper::toResponseDto)
                 .collect(Collectors.toList());
     }

@@ -64,6 +64,7 @@ class TaskControllerTest {
     private Task testTask;
     private String testUserToken;
     private Label featureLabel;
+    private TaskStatus draftStatus;
 
     @BeforeEach
     void setUp() {
@@ -72,6 +73,7 @@ class TaskControllerTest {
         dataInitializer.initializeLabels();
 
         featureLabel = labelRepository.findByName("feature").orElseGet(Assertions::fail);
+        draftStatus = taskStatusRepository.findBySlug("draft").orElseGet(Assertions::fail);
 
         testUser = Instancio.of(testModelGenerator.getUserModel()).create();
         testUserToken = jwtUtils.generateToken(testUser.getEmail(),
@@ -79,14 +81,13 @@ class TaskControllerTest {
         userRepository.save(testUser);
         testTask = Instancio.of(testModelGenerator.getTaskModel()).create();
         testTask.setAssignee(testUser);
-        testTask.setTaskStatus(taskStatusRepository.findBySlug("draft").orElse(null));
+        testTask.setTaskStatus(draftStatus);
         testTask.setLabels(Set.of(featureLabel));
         taskRepository.save(testTask);
     }
 
     @Test
     void getTaskById() throws Exception {
-        TaskStatus taskStatus = taskStatusRepository.findBySlug("draft").orElseGet(Assertions::fail);
         var request = get("/api/tasks/" + testTask.getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);
         var result = mockMvc.perform(request)
@@ -100,7 +101,7 @@ class TaskControllerTest {
                         v -> v.node("title").isEqualTo(testTask.getName()),
                         v -> v.node("content").isEqualTo(testTask.getDescription()),
                         v -> v.node("assignee_id").isEqualTo(testUser.getId()),
-                        v -> v.node("status").isEqualTo(taskStatus.getSlug()),
+                        v -> v.node("status").isEqualTo(draftStatus.getSlug()),
                         v -> v.node("taskLabelIds").isArray().containsExactlyInAnyOrder(featureLabel.getId()),
                         v -> v.node("createdAt").isNotNull());
     }
@@ -117,6 +118,36 @@ class TaskControllerTest {
         assertThatJson(body)
                 .isArray()
                 .isNotEmpty();
+    }
+
+    @Test
+    void getTaskStatusesWithFiltration() throws Exception {
+        var request = get("/api/tasks")
+                .param("titleCont", testTask.getName())
+                .param("assigneeId", testUser.getId().toString())
+                .param("status", draftStatus.getSlug())
+                .param("labelId", featureLabel.getId().toString())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);
+        var result = mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+        var body = result.getResponse().getContentAsString();
+        assertThatJson(body)
+                .isArray()
+                .isNotEmpty();
+
+        var request2 = get("/api/tasks")
+                .param("status", "noExistedStatus")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);
+        var result2 = mockMvc.perform(request2)
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+        var body2 = result2.getResponse().getContentAsString();
+        assertThatJson(body2)
+                .isArray()
+                .isEmpty();
     }
 
     @Test
