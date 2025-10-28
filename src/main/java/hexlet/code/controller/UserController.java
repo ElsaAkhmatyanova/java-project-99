@@ -52,6 +52,7 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or @userUtils.isCurrentUserIdEquals(#id)")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
     }

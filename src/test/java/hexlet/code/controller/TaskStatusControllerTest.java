@@ -184,7 +184,7 @@ public class TaskStatusControllerTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);
         mockMvc.perform(request)
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().isNoContent())
                 .andReturn();
         assertThat(taskStatusRepository.findBySlug(statusName)).isEmpty();
     }
