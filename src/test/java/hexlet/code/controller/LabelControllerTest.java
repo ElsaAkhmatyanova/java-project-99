@@ -1,11 +1,14 @@
 package hexlet.code.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.IntegrationTest;
 import hexlet.code.TestModelGenerator;
 import hexlet.code.component.DataInitializer;
 import hexlet.code.dto.label.LabelCreateDto;
+import hexlet.code.dto.label.LabelResponseDto;
 import hexlet.code.dto.label.LabelUpdateDto;
+import hexlet.code.mapper.LabelMapper;
 import hexlet.code.model.Label;
 import hexlet.code.model.Task;
 import hexlet.code.model.TaskStatus;
@@ -45,12 +48,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class LabelControllerTest {
 
     @Autowired
-    private TaskRepository taskRepository;
-
-    @Autowired
-    private TaskStatusRepository taskStatusRepository;
-
-    @Autowired
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper objectMapper;
@@ -65,6 +62,13 @@ class LabelControllerTest {
     private LabelRepository labelRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private TaskRepository taskRepository;
+    @Autowired
+    private TaskStatusRepository taskStatusRepository;
+
+    @Autowired
+    private LabelMapper labelMapper;
 
     private User testUser;
     private String testUserToken;
@@ -107,9 +111,12 @@ class LabelControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
         var body = result.getResponse().getContentAsString();
-        assertThatJson(body)
-                .isArray()
-                .isNotEmpty();
+        List<LabelResponseDto> responseDtoList = objectMapper.readValue(body, new TypeReference<>() {
+        });
+        List<LabelResponseDto> expectedDtoList = labelRepository.findAll().stream()
+                .map(labelMapper::toResponseDto)
+                .toList();
+        assertThat(responseDtoList).containsExactlyInAnyOrderElementsOf(expectedDtoList);
     }
 
     @Test

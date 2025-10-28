@@ -1,11 +1,14 @@
 package hexlet.code.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.IntegrationTest;
 import hexlet.code.TestModelGenerator;
 import hexlet.code.component.DataInitializer;
 import hexlet.code.dto.task_status.TaskStatusCreateDto;
+import hexlet.code.dto.task_status.TaskStatusResponseDto;
 import hexlet.code.dto.task_status.TaskStatusUpdateDto;
+import hexlet.code.mapper.TaskStatusMapper;
 import hexlet.code.model.Task;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.model.User;
@@ -59,8 +62,12 @@ public class TaskStatusControllerTest {
     @Autowired
     private TaskRepository taskRepository;
 
+    @Autowired
+    private TaskStatusMapper taskStatusMapper;
+
     private User testUser;
     private String testUserToken;
+    private TaskStatus dataftTaskStatus;
 
     @BeforeEach
     void setUp() {
@@ -70,13 +77,12 @@ public class TaskStatusControllerTest {
         testUserToken = jwtUtils.generateToken(testUser.getEmail(),
                 List.of(new SimpleGrantedAuthority("ROLE_USER")));
         userRepository.save(testUser);
+        dataftTaskStatus = taskStatusRepository.findBySlug("draft").orElseGet(Assertions::fail);
     }
 
     @Test
     void getTaskStatusById() throws Exception {
-        TaskStatus taskStatus = taskStatusRepository.findBySlug("draft").orElseGet(Assertions::fail);
-
-        var request = get("/api/task_statuses/" + taskStatus.getId())
+        var request = get("/api/task_statuses/" + dataftTaskStatus.getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);
         var result = mockMvc.perform(request)
                 .andDo(print())
@@ -84,9 +90,9 @@ public class TaskStatusControllerTest {
                 .andReturn();
         var body = result.getResponse().getContentAsString();
         assertThatJson(body)
-                .and(v -> v.node("id").isEqualTo(taskStatus.getId()),
-                        v -> v.node("name").isEqualTo(taskStatus.getName()),
-                        v -> v.node("slug").isEqualTo(taskStatus.getSlug()),
+                .and(v -> v.node("id").isEqualTo(dataftTaskStatus.getId()),
+                        v -> v.node("name").isEqualTo(dataftTaskStatus.getName()),
+                        v -> v.node("slug").isEqualTo(dataftTaskStatus.getSlug()),
                         v -> v.node("createdAt").isNotNull());
     }
 
@@ -99,9 +105,12 @@ public class TaskStatusControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
         var body = result.getResponse().getContentAsString();
-        assertThatJson(body)
-                .isArray()
-                .isNotEmpty();
+        List<TaskStatusResponseDto> responseDtoList = objectMapper.readValue(body, new TypeReference<>() {
+        });
+        List<TaskStatusResponseDto> expectedDtoList = taskStatusRepository.findAll().stream()
+                .map(taskStatusMapper::toResponseDto)
+                .toList();
+        assertThat(responseDtoList).containsExactlyInAnyOrderElementsOf(expectedDtoList);
     }
 
     @Test
@@ -130,10 +139,9 @@ public class TaskStatusControllerTest {
 
     @Test
     void createTaskStatusExistedError() throws Exception {
-        TaskStatus taskStatus = taskStatusRepository.findBySlug("draft").orElseGet(Assertions::fail);
         var requestDto = new TaskStatusCreateDto();
-        requestDto.setName(taskStatus.getName());
-        requestDto.setSlug(taskStatus.getSlug());
+        requestDto.setName(dataftTaskStatus.getName());
+        requestDto.setSlug(dataftTaskStatus.getSlug());
         String stringRequestBody = objectMapper.writeValueAsString(requestDto);
 
         var request = post("/api/task_statuses")
@@ -147,8 +155,6 @@ public class TaskStatusControllerTest {
 
     @Test
     void updateTaskStatus() throws Exception {
-        String taskStatusSlug = "draft";
-        TaskStatus taskStatus = taskStatusRepository.findBySlug(taskStatusSlug).orElseGet(Assertions::fail);
         String newName = "newName";
         String newSlug = "newSlug";
         var requestDto = new TaskStatusUpdateDto();
@@ -156,7 +162,7 @@ public class TaskStatusControllerTest {
         requestDto.setSlug(JsonNullable.of(newSlug));
 
         String stringRequestBody = objectMapper.writeValueAsString(requestDto);
-        var request = put("/api/task_statuses/" + taskStatus.getId())
+        var request = put("/api/task_statuses/" + dataftTaskStatus.getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(stringRequestBody);
@@ -173,29 +179,24 @@ public class TaskStatusControllerTest {
 
     @Test
     void deleteTaskStatus() throws Exception {
-        String taskStatusSlug = "draft";
-        TaskStatus taskStatus = taskStatusRepository.findBySlug(taskStatusSlug).orElseGet(Assertions::fail);
-
-        var request = delete("/api/task_statuses/" + taskStatus.getId())
+        String statusName = dataftTaskStatus.getName();
+        var request = delete("/api/task_statuses/" + dataftTaskStatus.getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);
         mockMvc.perform(request)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
-        assertThat(taskStatusRepository.findBySlug(taskStatusSlug)).isEmpty();
+        assertThat(taskStatusRepository.findBySlug(statusName)).isEmpty();
     }
 
     @Test
     void deleteTaskStatusWithAssignedTaskConflict() throws Exception {
-        String taskStatusSlug = "draft";
-        TaskStatus taskStatus = taskStatusRepository.findBySlug(taskStatusSlug).orElseGet(Assertions::fail);
-
         Task testTask = Instancio.of(testModelGenerator.getTaskModel()).create();
         testTask.setAssignee(testUser);
-        testTask.setTaskStatus(taskStatus);
+        testTask.setTaskStatus(dataftTaskStatus);
         taskRepository.save(testTask);
 
-        var request = delete("/api/task_statuses/" + taskStatus.getId())
+        var request = delete("/api/task_statuses/" + dataftTaskStatus.getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);
         mockMvc.perform(request)
                 .andDo(print())
