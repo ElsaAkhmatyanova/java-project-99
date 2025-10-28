@@ -6,7 +6,6 @@ import hexlet.code.dto.label.LabelResponseDto;
 import hexlet.code.dto.label.LabelUpdateDto;
 import hexlet.code.exception.AlreadyExistException;
 import hexlet.code.exception.NotFoundException;
-import hexlet.code.exception.RestrictionException;
 import hexlet.code.mapper.LabelMapper;
 import hexlet.code.model.Label;
 import hexlet.code.repository.LabelRepository;
@@ -59,9 +58,6 @@ public class LabelService {
 
     @Transactional
     public void deleteLabel(Long id) {
-        if (taskRepository.existsByLabelsId(id)) {
-            throw new RestrictionException("The label cannot be deleted because it's applied to a task");
-        }
         labelRepository.deleteById(id);
     }
 }

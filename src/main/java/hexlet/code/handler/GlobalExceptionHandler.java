@@ -9,6 +9,7 @@ import hexlet.code.exception.RestrictionException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
@@ -21,6 +22,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    public static final String LABEL_DELETE_ERROR_MESSAGE = "The label cannot be deleted "
+            + "because it's applied to a task";
+    public static final String TASK_STATUS_DELETE_ERROR_MESSAGE = "The task_status cannot be deleted "
+            + "because it's applied to a task";
+    public static final String USER_DELETE_ERROR_MESSAGE = "It's impossible to delete a user "
+            + "because he's assigned to a task";
 
     @ExceptionHandler(value = Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -88,6 +96,22 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorMessageResponse handleRestrictionException(RestrictionException e) {
         String errorMessage = e.getMessage() != null ? e.getMessage() : "RestrictionException!";
+        return ErrorMessageResponse.builder().error(errorMessage).build();
+    }
+
+    @ExceptionHandler(value = DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorMessageResponse handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        String errorMessage = e.getMessage() != null ? e.getMessage() : "DataIntegrityViolationException!";
+        if (errorMessage.contains("PUBLIC.TASKS FOREIGN KEY(TASK_STATUS_ID) REFERENCES PUBLIC.TASK_STATUSES(ID)")) {
+            errorMessage = TASK_STATUS_DELETE_ERROR_MESSAGE;
+        }
+        if (errorMessage.contains("PUBLIC.TASK_LABELS FOREIGN KEY(LABEL_ID) REFERENCES PUBLIC.LABELS(ID)")) {
+            errorMessage = LABEL_DELETE_ERROR_MESSAGE;
+        }
+        if (errorMessage.contains("PUBLIC.TASKS FOREIGN KEY(ASSIGNEE_ID) REFERENCES PUBLIC.USERS(ID)")) {
+            errorMessage = USER_DELETE_ERROR_MESSAGE;
+        }
         return ErrorMessageResponse.builder().error(errorMessage).build();
     }
 }

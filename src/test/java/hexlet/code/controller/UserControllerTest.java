@@ -6,11 +6,15 @@ import hexlet.code.TestModelGenerator;
 import hexlet.code.component.DataInitializer;
 import hexlet.code.dto.user.UserCreateDto;
 import hexlet.code.dto.user.UserUpdateDto;
+import hexlet.code.model.Task;
+import hexlet.code.model.TaskStatus;
 import hexlet.code.model.User;
-import hexlet.code.repository.RoleRepository;
+import hexlet.code.repository.TaskRepository;
+import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.repository.UserRepository;
 import hexlet.code.util.JWTUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.api.Assertions;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static hexlet.code.handler.GlobalExceptionHandler.USER_DELETE_ERROR_MESSAGE;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
@@ -50,7 +55,9 @@ class UserControllerTest {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private RoleRepository roleRepository;
+    private TaskRepository taskRepository;
+    @Autowired
+    private TaskStatusRepository taskStatusRepository;
 
 
     private User testUser;
@@ -59,6 +66,7 @@ class UserControllerTest {
     @BeforeEach
     void setUp() {
         dataInitializer.initializeRoles();
+        dataInitializer.initializeTaskStatuses();
         testUser = Instancio.of(testModelGenerator.getUserModel()).create();
         testUserToken = jwtUtils.generateToken(testUser.getEmail(),
                 List.of(new SimpleGrantedAuthority("ROLE_USER")));
@@ -181,5 +189,21 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
         assertThat(userRepository.findAll()).isEmpty();
+    }
+
+    @Test
+    void deleteUserWithAssignedTaskConflict() throws Exception {
+        TaskStatus draftStatus = taskStatusRepository.findBySlug("draft").orElseGet(Assertions::fail);
+        Task testTask = Instancio.of(testModelGenerator.getTaskModel()).create();
+        testTask.setAssignee(testUser);
+        testTask.setTaskStatus(draftStatus);
+        taskRepository.save(testTask);
+
+        var request = delete("/api/users/" + testUser.getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);
+        mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isConflict())
+                .andExpect(content().string(containsString(USER_DELETE_ERROR_MESSAGE)));
     }
 }

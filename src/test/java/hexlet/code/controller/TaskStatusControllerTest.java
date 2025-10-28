@@ -27,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static hexlet.code.handler.GlobalExceptionHandler.TASK_STATUS_DELETE_ERROR_MESSAGE;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
@@ -199,7 +200,6 @@ public class TaskStatusControllerTest {
         mockMvc.perform(request)
                 .andDo(print())
                 .andExpect(status().isConflict())
-                .andExpect(content().string(containsString(
-                        "The task_status cannot be deleted because it's applied to a task")));
+                .andExpect(content().string(containsString(TASK_STATUS_DELETE_ERROR_MESSAGE)));
     }
 }

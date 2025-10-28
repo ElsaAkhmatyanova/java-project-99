@@ -5,7 +5,6 @@ import hexlet.code.dto.user.UserResponseDto;
 import hexlet.code.dto.user.UserUpdateDto;
 import hexlet.code.exception.AlreadyExistException;
 import hexlet.code.exception.NotFoundException;
-import hexlet.code.exception.RestrictionException;
 import hexlet.code.mapper.UserMapper;
 import hexlet.code.model.User;
 import hexlet.code.repository.TaskRepository;
@@ -59,9 +58,6 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long id) {
-        if (taskRepository.existsByAssigneeId(id)) {
-            throw new RestrictionException("It's impossible to delete a user because he's assigned to a task");
-        }
         userRepository.deleteById(id);
     }
 }

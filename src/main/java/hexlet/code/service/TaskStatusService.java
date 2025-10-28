@@ -5,7 +5,6 @@ import hexlet.code.dto.task_status.TaskStatusResponseDto;
 import hexlet.code.dto.task_status.TaskStatusUpdateDto;
 import hexlet.code.exception.AlreadyExistException;
 import hexlet.code.exception.NotFoundException;
-import hexlet.code.exception.RestrictionException;
 import hexlet.code.mapper.TaskStatusMapper;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.repository.TaskRepository;
@@ -61,9 +60,6 @@ public class TaskStatusService {
 
     @Transactional
     public void deleteTaskStatus(Long id) {
-        if (taskRepository.existsByTaskStatusId(id)) {
-            throw new RestrictionException("The task_status cannot be deleted because it's applied to a task");
-        }
         taskStatusRepository.deleteById(id);
     }
 }
