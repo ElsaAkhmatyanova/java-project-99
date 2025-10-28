@@ -1,7 +1,4 @@
 ### Hexlet tests and linter status:
-[![Actions Status](https://github.com/ElsaAkhmatyanova/java-project-99/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/ElsaAkhmatyanova/java-project-99/actions)
-
-### Hexlet tests and linter status:
 
 [![Actions Status](https://github.com/ElsaAkhmatyanova/java-project-99/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/ElsaAkhmatyanova/java-project-99/actions)
 ![CI](https://github.com/ElsaAkhmatyanova/java-project-99/actions/workflows/ci.yml/badge.svg)
