@@ -7,6 +7,7 @@ import hexlet.code.service.LabelService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,13 +35,14 @@ public class LabelController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public LabelResponseDto createLabel(@Valid @RequestBody LabelCreateDto dto) {
         return labelService.createLabel(dto);
     }
 
     @PutMapping("/{id}")
     public LabelResponseDto updateLabel(@PathVariable Long id,
-                                       @Valid @RequestBody LabelUpdateDto dto) {
+                                        @Valid @RequestBody LabelUpdateDto dto) {
         return labelService.updateLabel(id, dto);
     }
 

@@ -168,7 +168,7 @@ class TaskControllerTest {
                 .content(stringRequestBody);
         var result = mockMvc.perform(request)
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
         var body = result.getResponse().getContentAsString();
         assertThatJson(body)
