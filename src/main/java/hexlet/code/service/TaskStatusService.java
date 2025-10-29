@@ -3,63 +3,18 @@ package hexlet.code.service;
 import hexlet.code.dto.task_status.TaskStatusCreateDto;
 import hexlet.code.dto.task_status.TaskStatusResponseDto;
 import hexlet.code.dto.task_status.TaskStatusUpdateDto;
-import hexlet.code.exception.AlreadyExistException;
-import hexlet.code.exception.NotFoundException;
-import hexlet.code.mapper.TaskStatusMapper;
-import hexlet.code.model.TaskStatus;
-import hexlet.code.repository.TaskRepository;
-import hexlet.code.repository.TaskStatusRepository;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Slf4j
-@Service
-@RequiredArgsConstructor
-public class TaskStatusService {
+public interface TaskStatusService {
 
-    private final TaskStatusRepository taskStatusRepository;
-    private final TaskRepository taskRepository;
-    private final TaskStatusMapper taskStatusMapper;
+    TaskStatusResponseDto getTaskStatusById(Long id);
 
-    public TaskStatusResponseDto getTaskStatusById(Long id) {
-        TaskStatus taskStatus = taskStatusRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("TaskStatus with id " + id + " not found!"));
-        return taskStatusMapper.toResponseDto(taskStatus);
-    }
+    List<TaskStatusResponseDto> getAllTaskStatuses();
 
-    public List<TaskStatusResponseDto> getAllTaskStatuses() {
-        return taskStatusRepository.findAll().stream()
-                .map(taskStatusMapper::toResponseDto)
-                .collect(Collectors.toList());
-    }
+    TaskStatusResponseDto createTaskStatus(TaskStatusCreateDto dto);
 
-    @Transactional
-    public TaskStatusResponseDto createTaskStatus(TaskStatusCreateDto dto) {
-        if (taskStatusRepository.existsByNameIgnoreCaseOrSlugIgnoreCase(dto.getName(), dto.getSlug())) {
-            throw new AlreadyExistException(
-                    String.format("TaskStatus.name or TaskStatus.slug (%s or %s) already in use!",
-                            dto.getName(),
-                            dto.getSlug()));
-        }
-        TaskStatus taskStatus = taskStatusMapper.toEntity(dto);
-        return taskStatusMapper.toResponseDto(taskStatusRepository.save(taskStatus));
-    }
+    TaskStatusResponseDto updateTaskStatus(Long id, TaskStatusUpdateDto dto);
 
-    @Transactional
-    public TaskStatusResponseDto updateTaskStatus(Long id, TaskStatusUpdateDto dto) {
-        TaskStatus taskStatus = taskStatusRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("TaskStatus with id " + id + " not found!"));
-        taskStatusMapper.update(dto, taskStatus);
-        return taskStatusMapper.toResponseDto(taskStatusRepository.save(taskStatus));
-    }
-
-    @Transactional
-    public void deleteTaskStatus(Long id) {
-        taskStatusRepository.deleteById(id);
-    }
+    void deleteTaskStatus(Long id);
 }

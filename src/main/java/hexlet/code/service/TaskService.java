@@ -4,58 +4,18 @@ import hexlet.code.dto.task.TaskCreateDto;
 import hexlet.code.dto.task.TaskFiltrationDto;
 import hexlet.code.dto.task.TaskResponseDto;
 import hexlet.code.dto.task.TaskUpdateDto;
-import hexlet.code.exception.NotFoundException;
-import hexlet.code.mapper.TaskMapper;
-import hexlet.code.model.Task;
-import hexlet.code.repository.TaskRepository;
-import hexlet.code.repository.specification.TaskSpecification;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Slf4j
-@Service
-@RequiredArgsConstructor
-public class TaskService {
+public interface TaskService {
 
-    private final TaskRepository taskRepository;
-    private final TaskMapper taskMapper;
-    private final TaskSpecification taskSpecification;
+    TaskResponseDto getTaskById(Long id);
 
-    public TaskResponseDto getTaskById(Long id) {
-        Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Task with id " + id + " not found!"));
-        return taskMapper.toResponseDto(task);
-    }
+    List<TaskResponseDto> getAllTasks(TaskFiltrationDto filtration);
 
-    public List<TaskResponseDto> getAllTasks(TaskFiltrationDto filtration) {
-        Specification<Task> spec = taskSpecification.build(filtration);
-        return taskRepository.findAll(spec).stream()
-                .map(taskMapper::toResponseDto)
-                .collect(Collectors.toList());
-    }
+    TaskResponseDto createTask(TaskCreateDto dto);
 
-    @Transactional
-    public TaskResponseDto createTask(TaskCreateDto dto) {
-        Task task = taskMapper.toEntity(dto);
-        return taskMapper.toResponseDto(taskRepository.save(task));
-    }
+    TaskResponseDto updateTask(Long id, TaskUpdateDto dto);
 
-    @Transactional
-    public TaskResponseDto updateTask(Long id, TaskUpdateDto dto) {
-        Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Task with id " + id + " not found!"));
-        taskMapper.update(dto, task);
-        return taskMapper.toResponseDto(taskRepository.save(task));
-    }
-
-    @Transactional
-    public void deleteTask(Long id) {
-        taskRepository.deleteById(id);
-    }
+    void deleteTask(Long id);
 }

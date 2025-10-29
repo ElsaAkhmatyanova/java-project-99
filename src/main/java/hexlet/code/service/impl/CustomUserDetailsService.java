@@ -1,4 +1,4 @@
-package hexlet.code.service;
+package hexlet.code.service.impl;
 
 import hexlet.code.exception.NotFoundException;
 import hexlet.code.model.Role;

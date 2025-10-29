@@ -8,7 +8,7 @@ import hexlet.code.model.User;
 import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.RoleRepository;
 import hexlet.code.repository.TaskStatusRepository;
-import hexlet.code.service.CustomUserDetailsService;
+import hexlet.code.service.impl.CustomUserDetailsService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
