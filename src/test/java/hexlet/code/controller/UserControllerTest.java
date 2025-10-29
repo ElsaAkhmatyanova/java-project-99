@@ -91,6 +91,17 @@ class UserControllerTest {
     }
 
     @Test
+    void getUserByIdNotFound() throws Exception {
+        long notExistedId = 99999L;
+        var request = get("/api/users/" + notExistedId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);
+        mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString("not found")));
+    }
+
+    @Test
     void getUsers() throws Exception {
         var request = get("/api/users")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);

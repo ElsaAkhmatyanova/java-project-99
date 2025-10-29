@@ -97,6 +97,17 @@ public class TaskStatusControllerTest {
     }
 
     @Test
+    void getTaskStatusByNotFound() throws Exception {
+        long notExistedId = 99999L;
+        var request = get("/api/task_statuses/" + notExistedId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);
+        mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString("not found")));
+    }
+
+    @Test
     void getTaskStatuses() throws Exception {
         var request = get("/api/task_statuses")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);

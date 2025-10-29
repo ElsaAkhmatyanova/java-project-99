@@ -32,8 +32,10 @@ import java.util.Set;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.core.StringContains.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
@@ -104,6 +106,17 @@ class TaskControllerTest {
                         v -> v.node("status").isEqualTo(draftStatus.getSlug()),
                         v -> v.node("taskLabelIds").isArray().containsExactlyInAnyOrder(featureLabel.getId()),
                         v -> v.node("createdAt").isNotNull());
+    }
+
+    @Test
+    void getTaskByIdNotFound() throws Exception {
+        long notExistedId = 99999L;
+        var request = get("/api/tasks/" + notExistedId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + testUserToken);
+        mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString("not found")));
     }
 
     @Test
