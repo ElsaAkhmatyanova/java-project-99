@@ -16,7 +16,7 @@ zonky:
   test:
     database:
       type: H2
-      refresh: AFTER_EACH_TEST_METHOD
+      refresh: before_each_test_method
 
 logging:
   level:
