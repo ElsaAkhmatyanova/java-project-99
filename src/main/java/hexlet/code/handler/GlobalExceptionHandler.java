@@ -5,7 +5,6 @@ import hexlet.code.dto.error.ValidationError;
 import hexlet.code.dto.error.Violation;
 import hexlet.code.exception.AlreadyExistException;
 import hexlet.code.exception.NotFoundException;
-import hexlet.code.exception.RestrictionException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -89,13 +88,6 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorMessageResponse handleAlreadyExistException(AlreadyExistException e) {
         String errorMessage = e.getMessage() != null ? e.getMessage() : "AlreadyExistException!";
-        return ErrorMessageResponse.builder().error(errorMessage).build();
-    }
-
-    @ExceptionHandler(value = RestrictionException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorMessageResponse handleRestrictionException(RestrictionException e) {
-        String errorMessage = e.getMessage() != null ? e.getMessage() : "RestrictionException!";
         return ErrorMessageResponse.builder().error(errorMessage).build();
     }
 
